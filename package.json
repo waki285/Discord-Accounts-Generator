@@ -1,0 +1,33 @@
+{
+  "name": "discord-accounts-generator",
+  "version": "1.0.0",
+  "description": "discord's accounts generate and get the token",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc",
+    "start": "node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/waki285/Discord-Accounts-Generator.git"
+  },
+  "keywords": [
+    "discord"
+  ],
+  "author": "waki285 <suzuneu@suzuneu.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/waki285/Discord-Accounts-Generator/issues"
+  },
+  "homepage": "https://github.com/waki285/Discord-Accounts-Generator#readme",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "chalk": "^4.1.2",
+    "puppeteer": "^13.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.7",
+    "typescript": "^4.5.4"
+  }
+}
