@@ -4,3 +4,5 @@ node_modules
 .upm
 .breakpoints
 dist
+.ssh
+.replit

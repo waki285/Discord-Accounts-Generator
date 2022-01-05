@@ -1,6 +1,4 @@
 import Axios, { AxiosInstance } from "axios";
-import ACS from "axios-cookiejar-support";
-ACS.wrapper(Axios);
 const baseUrl = "https://www.gmailnator.com/";
 const headers = {
   authority: "www.gmailnator.com",
@@ -19,19 +17,24 @@ const headers = {
   "accept-language": "en-US,en;q=0.9,",
   "sec-gpc": "1",
 };
+
 class Gmailnator {
   public client: AxiosInstance;
   public csrfToken: string;
   constructor() {
     this.client = Axios.create({
-      jar: true,
       withCredentials: true
     });
     this.csrfToken = "a";
   }
   /*private */async _getCsrf() {
-    const response = await this.client.get(baseUrl, { headers });
+    const response = await this.client.get(baseUrl, { headers, proxy: { host: "209.97.150.167", port: 8080 }, maxRedirects: 99 });
     console.log(response);
     const token = response.headers
   }
 }
+
+(async () => {
+  const a = new Gmailnator();
+  await a._getCsrf();
+})()
