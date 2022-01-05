@@ -3,6 +3,7 @@ import { EventEmitter } from "events";
 import { readFile } from "fs/promises";
 import { red, magenta, green, yellowBright, bgWhite, cyan, bgMagenta } from "chalk"
 
+
 const K = `${magenta("[")}*${magenta("]")}`;
 const DAG = bgWhite.black("DAG");
 const INFO = cyan("info");
@@ -33,7 +34,7 @@ class Generator<IS extends boolean> extends EventEmitter {
       console.log(`${K} ${DAG} ${SUCCESS} browser launched.`)
     }
   };
-  async scrapEmail() {}
+  async scrapEmail() {};
 };
 
 (async () => {

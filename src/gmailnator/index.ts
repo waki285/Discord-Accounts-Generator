@@ -25,16 +25,28 @@ class Gmailnator {
     this.client = Axios.create({
       withCredentials: true
     });
-    this.csrfToken = "a";
+    this.csrfToken = ""
+  };
+  public static async build(): Promise<Gmailnator> {
+    const gmailnator = new Gmailnator();
+    gmailnator.client = Axios.create({
+      withCredentials: true
+    });
+    gmailnator.csrfToken = await gmailnator.getCsrf();
+    return gmailnator;
   }
-  /*private */async _getCsrf() {
-    const response = await this.client.get(baseUrl, { headers, proxy: { host: "209.97.150.167", port: 8080 }, maxRedirects: 99 });
-    console.log(response);
-    const token = response.headers
+  public async getCsrf(): Promise<string> {
+    const response = await this.client.get(baseUrl, { headers });
+    const token = response.headers["set-cookie"]?.find(x => x.includes("csrf_gmailnator_cookie"))?.split(";")[0]?.replace("csrf_gmailnator_cookie=", "");
+    return token as string;
   }
 }
 
-(async () => {
-  const a = new Gmailnator();
-  await a._getCsrf();
-})()
+class GmailnatorRead extends Gmailnator {
+  constructor(email: string, rawEmail: string, types: "dot" | "plus") {
+    super();
+
+  }
+}
+
+export { Gmailnator };

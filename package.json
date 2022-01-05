@@ -26,7 +26,11 @@
     "axios-cookiejar-support": "^2.0.3",
     "chalk": "^4.1.2",
     "fs": "0.0.1-security",
-    "puppeteer": "^13.0.1"
+    "ghost-cursor": "^1.1.8",
+    "jwt-decode": "^3.1.2",
+    "puppeteer": "^13.0.1",
+    "puppeteer-extra": "^3.2.3",
+    "puppeteer-extra-plugin-stealth": "^2.9.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.7",
