@@ -10,7 +10,10 @@
     "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
     "moduleResolution": "node",
     "strict": true,                                     /* Enable all strict type-checking options. */
-    "module": "CommonJS"
+    "module": "CommonJS",
+    "paths": {
+      "puppeteer-hcaptcha": ["./src/types.d.ts"]
+    },
   },
   "include": ["src"]
 }
