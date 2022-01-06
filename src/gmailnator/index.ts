@@ -16,36 +16,38 @@ const headers = {
   referer: "https://www.gmailnator.com/inbox/",
   "accept-language": "en-US,en;q=0.9,",
   "sec-gpc": "1",
-};
+} as const;
 
 class Gmailnator {
   public client: AxiosInstance;
-  public csrfToken: string;
+  public csrfToken: string | null;
   constructor() {
     this.client = Axios.create({
       withCredentials: true
     });
-    this.csrfToken = ""
+    this.csrfToken = null;
   };
-  public static async build(): Promise<Gmailnator> {
-    const gmailnator = new Gmailnator();
-    gmailnator.client = Axios.create({
-      withCredentials: true
-    });
-    gmailnator.csrfToken = await gmailnator.getCsrf();
-    return gmailnator;
-  }
   public async getCsrf(): Promise<string> {
     const response = await this.client.get(baseUrl, { headers });
     const token = response.headers["set-cookie"]?.find(x => x.includes("csrf_gmailnator_cookie"))?.split(";")[0]?.replace("csrf_gmailnator_cookie=", "");
+    this.csrfToken = token as string;
     return token as string;
   }
 }
 
 class GmailnatorRead extends Gmailnator {
+  public type: "dot" | "plus";
+  public email: string;
+  public rawEmail: string;
   constructor(email: string, rawEmail: string, types: "dot" | "plus") {
     super();
-
+    this.type = types;
+    this.email = email;
+    this.rawEmail = rawEmail;
+  };
+  private _getEmailName() {
+    const nameOnly = /(^.*?(?=[%|@])[%|@])/;
+    name
   }
 }
 

@@ -99,7 +99,13 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     console.log(`${K} ${DAG} ${INFO} type random birthday ${month}/${date}/${year}`);
     await page.click("div[class='css-1hwfws3']");
     await page.keyboard.type(String(month));
-    await page.keyboard.press("Enter")
+    await page.keyboard.press("Enter");
+    await page.keyboard.type(String(date));
+    await page.keyboard.press("Enter");
+    await page.keyboard.type(String(year));
+    await page.keyboard.press("Enter");
+
+    if (this._getEmail) {}
   }
 };
 
