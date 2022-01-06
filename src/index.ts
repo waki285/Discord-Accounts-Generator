@@ -7,6 +7,7 @@ import { red, magenta, green, yellowBright, bgWhite, cyan, bgMagenta } from "cha
 import { hcaptcha } from "puppeteer-hcaptcha"
 import axios from "axios";
 import { randomBytes } from "crypto";
+import { GmailnatorGet } from "./gmailnator/index";
 
 puppeteer.use(pluginStealth());
 
@@ -52,7 +53,12 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
       return;
     }
   };
-  async scrapEmail() {};
+  async scrapEmail() {
+    console.log(`${K} ${DAG} ${INFO} scrapping email now.`);
+    const g = new GmailnatorGet();
+    await g.init();
+    const newEmail = g.getEmail();
+  };
   async getRandomName(): Promise<string> {
     console.log(`${K} ${DAG} ${INFO} get random username.`);
     const nameFile: string = await readFile("./config/username.txt", "utf-8");

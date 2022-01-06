@@ -105,7 +105,7 @@ class GmailnatorGet extends Gmailnator {
     await this.getCsrf();
     return;
   };
-  async getEmail() {
+  async getEmail(): Promise<string> {
     await this.init();
     const payload = {
       "csrf_gmailnator_token": this.csrfToken,
@@ -116,6 +116,7 @@ class GmailnatorGet extends Gmailnator {
     const r = await this.client.post(baseUrl + "index/indexquery", payload, {
       responseType: "text"
     });
+    return r.data;
   }
 }
 
