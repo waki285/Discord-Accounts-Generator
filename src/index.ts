@@ -39,6 +39,7 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     const defaultArgs = ["--no-sandbox", "--disable-setuid-sandbox"];
     const proxies = await readFile("./config/proxies.txt", "utf-8");
     if (!proxies) {
+      console.log(`${K} ${DAG} ${WARNING} You don't use any proxy.`)
       this._browser = await puppeteer.launch({ args: args ? args.concat(defaultArgs):defaultArgs, headless: false });
       console.log(`${K} ${DAG} ${SUCCESS} browser launched.`)
       return;
