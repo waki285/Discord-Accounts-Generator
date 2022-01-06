@@ -22,10 +22,12 @@
   },
   "homepage": "https://github.com/waki285/Discord-Accounts-Generator#readme",
   "dependencies": {
+    "@cliqz/adblocker-puppeteer": "^1.23.2",
     "@tensorflow/tfjs-node": "^3.12.0",
     "axios": "^0.24.0",
     "axios-cookiejar-support": "^2.0.3",
     "chalk": "^4.1.2",
+    "cross-fetch": "^3.1.4",
     "fs": "0.0.1-security",
     "ghost-cursor": "^1.1.8",
     "jwt-decode": "^3.1.2",

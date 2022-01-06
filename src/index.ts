@@ -8,7 +8,8 @@ import { hcaptcha } from "puppeteer-hcaptcha"
 import axios from "axios";
 import { randomBytes } from "crypto";
 import { GmailnatorGet } from "./gmailnator/index";
-
+import { PuppeteerBlocker } from "@cliqz/adblocker-puppeteer";
+import fetch from "cross-fetch";
 puppeteer.use(pluginStealth());
 
 const K = `${magenta("[")}*${magenta("]")}`;
@@ -55,11 +56,19 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
   };
   async scrapEmail() {
     console.log(`${K} ${DAG} ${INFO} scrapping email now.`);
-    const g = new GmailnatorGet();
+    /*const g = new GmailnatorGet();
     const t = await g.init();
     console.log(`${K} ${DAG} ${SUCCESS} token used ${t}`);
     const newEmail = await g.getEmail();
-    console.log(`${K} ${DAG} ${SUCCESS} email used ${newEmail}`);
+    console.log(`${K} ${DAG} ${SUCCESS} email used ${newEmail}`);*/
+    if (!this._browser) throw new Error("You don't launch browser! please run generator.launch()");
+    const mailPage = await this._browser.newPage();
+    PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => blocker.enableBlockingInPage(mailPage));
+    await mailPage.goto("https://www.gmailnator.com");
+    await mailPage.waitForResponse("https://www.gmailnator.com/index/indexquery");
+    const mail = (await mailPage.$("#email_address"))?.evaluate(node => node.nodeValue);
+    console.log(mail);
+
   };
   async getRandomName(): Promise<string> {
     console.log(`${K} ${DAG} ${INFO} get random username.`);
@@ -88,7 +97,7 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
   };
   async typeInfo() {
     console.log(`${K} ${DAG} ${INFO} type username and password etc.`);
-    if (!this._browser) throw new Error("You don't launch browser! please run generator.launch() .");
+    if (!this._browser) throw new Error("You don't launch browser! please run generator.launch()");
     const pages: Page[] = await this._browser.pages();
     const page:Page | undefined = pages[0];
     if (!page) throw new Error("You don't open discord! please run generator.gotoDiscord()");
