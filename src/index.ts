@@ -29,6 +29,7 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
   private _getEmail: boolean;
   private _browser: Browser | null;
   private _username: string | null;
+  private _email: string | null;
   constructor(options?: { getEmail?: GE, useSolver?: US}) {
     super();
     if (options && options.useSolver) this._useSolver = options.useSolver; else this._useSolver = true;
@@ -36,6 +37,7 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     this._browser = null;
     console.log(`${K} ${DAG} ${SUCCESS} initialized.`);
     this._username = null;
+    this._email = null;
   };
   async launch(args?: string[]): Promise<void> {
     const defaultArgs = ["--no-sandbox", "--disable-setuid-sandbox"];
@@ -55,6 +57,7 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     }
   };
   async scrapEmail() {
+    if (this._getEmail === false) throw new Error("You choose don't scrap email!");
     console.log(`${K} ${DAG} ${INFO} scrapping email now.`);
     /*const g = new GmailnatorGet();
     const t = await g.init();
@@ -64,10 +67,11 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     if (!this._browser) throw new Error("You don't launch browser! please run generator.launch()");
     const mailPage = await this._browser.newPage();
     PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => blocker.enableBlockingInPage(mailPage));
-    await mailPage.goto("https://www.gmailnator.com");
-    await mailPage.waitForResponse("https://www.gmailnator.com/index/indexquery");
-    const mail = (await mailPage.$("#email_address"))?.evaluate(node => node.nodeValue);
-    console.log(mail);
+    mailPage.goto("https://www.gmailnator.com");
+    await mailPage.waitForResponse(res => !!res.url().match(/index\/indexquery/));
+    const mail = (await (await mailPage.$("#email_address"))?.getProperty("value"))!.toString().replace("JSHandle:", "");
+    this._email = mail;
+    console.log(`${K} ${DAG} ${SUCCESS} scrapped ${mail}.`);
 
   };
   async getRandomName(): Promise<string> {
@@ -92,6 +96,7 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     if (!this._browser) throw new Error("You don't launch browser! please run generator.launch() .");
     const pages: Page[] = await this._browser.pages();
     const page:Page = pages[0] || await this._browser.newPage();
+    if (pages.length > 1) await page.bringToFront();
     await page.goto("https://discord.com/register");
     console.log(`${K} ${DAG} ${SUCCESS} success go to discord register page.`);
   };
@@ -103,7 +108,11 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     if (!page) throw new Error("You don't open discord! please run generator.gotoDiscord()");
     if (!this._username) throw new Error("You don't have username! please run generator.getRandomName()");
     await page.waitForSelector("input[name=email]");
-    //await page.waitForTimeout(9000);
+    if (this._getEmail) {
+      if (!this._email) throw new Error("You don't have an email! please run generator.scrapEmail()");
+      console.log(`${K} ${DAG} ${INFO} type email ${this._email}`);
+      await page.type("input[name=email]", this._email);
+    }
     console.log(`${K} ${DAG} ${INFO} type username ${this._username}`);
     await page.type("input[name=username]", this._username);
     const pass = randomBytes(10).toString("base64").replaceAll("=", "");
@@ -123,7 +132,6 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     await page.keyboard.type(String(year));
     await page.keyboard.press("Enter");
 
-    if (this._getEmail) {}
   }
 };
 
