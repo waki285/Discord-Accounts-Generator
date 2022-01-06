@@ -120,6 +120,7 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
 (async () => {
   const generator = new Generator();
   await generator.launch();
+  await generator.scrapEmail();
   await generator.getRandomName()
   await generator.gotoDiscord();
   await generator.typeInfo();

@@ -1,4 +1,5 @@
 import Axios, { AxiosInstance, AxiosResponse } from "axios";
+import { URLSearchParams } from "url"
 const baseUrl = "https://www.gmailnator.com/";
 const headers = {
   authority: "www.gmailnator.com",
@@ -105,18 +106,18 @@ class GmailnatorGet extends Gmailnator {
     await this.getCsrf();
     return;
   };
-  async getEmail(): Promise<string> {
+  async getEmail(): Promise<string | void> {
     await this.init();
-    const payload = {
-      "csrf_gmailnator_token": this.csrfToken,
-      action: "GenerateEmail",
-      "data[]": 3
-    };
+    const payload = new URLSearchParams();
+    if (!this.csrfToken) throw new Error("no csrf token!");
+    payload.append("csrf_gmailnator_token", this.csrfToken);
+    payload.append("action", "GenerateEmail")
 
     const r = await this.client.post(baseUrl + "index/indexquery", payload, {
+      headers: headers,
       responseType: "text"
-    });
-    return r.data;
+    })
+    return r.data
   }
 }
 
