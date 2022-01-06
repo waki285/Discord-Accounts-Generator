@@ -56,7 +56,8 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
   async scrapEmail() {
     console.log(`${K} ${DAG} ${INFO} scrapping email now.`);
     const g = new GmailnatorGet();
-    await g.init();
+    const t = await g.init();
+    console.log(`${K} ${DAG} ${SUCCESS} token used ${t}`);
     const newEmail = await g.getEmail();
     console.log(`${K} ${DAG} ${SUCCESS} email used ${newEmail}`);
   };

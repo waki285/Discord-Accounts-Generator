@@ -1,4 +1,5 @@
 import Axios, { AxiosInstance, AxiosResponse } from "axios";
+import puppeteer from "puppeteer"
 import { URLSearchParams } from "url"
 const baseUrl = "https://www.gmailnator.com/";
 const headers = {
@@ -29,9 +30,16 @@ class Gmailnator {
     this.csrfToken = null;
   };
   public async getCsrf(): Promise<string> {
-    const response = await this.client.get(baseUrl, { headers });
+    /*const response = await this.client.get(baseUrl, { headers, withCredentials: true });
     const token = response.headers["set-cookie"]?.find(x => x.includes("csrf_gmailnator_cookie"))?.split(";")[0]?.replace("csrf_gmailnator_cookie=", "");
     this.csrfToken = token as string;
+    return token as string;*/
+    const browser = await puppeteer.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"], headless: false });
+    const page = await browser.newPage();
+    const res = await page.goto(baseUrl);
+    const token = res.headers()["set-cookie"].split(";").find(x => x.includes("csrf_gmailnator_cookie"))?.replace("csrf_gmailnator_cookie=", "");
+    this.csrfToken = token as string;
+//    await browser.close();
     return token as string;
   }
 }
@@ -102,22 +110,22 @@ class GmailnatorGet extends Gmailnator {
   constructor() {
     super();
   };
-  async init(): Promise<void> {
-    await this.getCsrf();
-    return;
+  async init(): Promise<string> {
+    const t = await this.getCsrf();
+    return t;
   };
   async getEmail(): Promise<string | void> {
     await this.init();
     const payload = new URLSearchParams();
     if (!this.csrfToken) throw new Error("no csrf token!");
     payload.append("csrf_gmailnator_token", this.csrfToken);
-    payload.append("action", "GenerateEmail")
+    payload.append("action", "GenerateEmail");
 
-    const r = await this.client.post(baseUrl + "index/indexquery", payload, {
-      headers: headers,
+    /*const r = await this.client.post(baseUrl + "index/indexquery", payload.toString(), {
+//      headers: headers,
       responseType: "text"
     })
-    return r.data
+    return r.data*/
   }
 }
 
