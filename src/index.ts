@@ -3,14 +3,23 @@ import pluginStealth from "puppeteer-extra-plugin-stealth"
 import { Browser, Page } from "puppeteer"
 import { EventEmitter } from "events";
 import { readFile } from "fs/promises";
-import { red, magenta, green, yellowBright, bgWhite, cyan, bgMagenta } from "chalk";
+import { red, magenta, green, yellowBright, bgWhite, cyan, bgMagenta, hex } from "chalk";
 import { hcaptcha } from "puppeteer-hcaptcha"
 import axios from "axios";
 import { randomBytes } from "crypto";
 import { GmailnatorGet } from "./gmailnator/index";
 import { PuppeteerBlocker } from "@cliqz/adblocker-puppeteer";
 import fetch from "cross-fetch";
+import { createInterface } from "readline";
 puppeteer.use(pluginStealth());
+const rl = createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const question = async (query: string): Promise<string> => new Promise((r) => {
+  rl.question(query, (answer) => r(answer));
+});
 
 const K = `${magenta("[")}*${magenta("]")}`;
 const DAG = bgWhite.black("DAG");
@@ -68,7 +77,9 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     const mailPage = await this._browser.newPage();
     PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => blocker.enableBlockingInPage(mailPage));
     mailPage.goto("https://www.gmailnator.com");
+    const timeout = setTimeout(() => mailPage.reload(), 2000);
     await mailPage.waitForResponse(res => !!res.url().match(/index\/indexquery/));
+    clearTimeout(timeout);
     const mail = (await (await mailPage.$("#email_address"))?.getProperty("value"))!.toString().replace("JSHandle:", "");
     this._email = mail;
     console.log(`${K} ${DAG} ${SUCCESS} scrapped ${mail}.`);
@@ -131,6 +142,21 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     await page.keyboard.press("Enter");
     await page.keyboard.type(String(year));
     await page.keyboard.press("Enter");
+    
+    const check = await page.$("input[type=checkbox]");
+    if (check) {
+      console.log(`${K} ${DAG} ${INFO} checkbox found. clicking...`);
+      await check.click();
+    };
+
+    if (!this._getEmail) {
+      const email = await question(`${K} ${DAG} ${hex("#FF19BA").bgCyan("QUESTION")} please type email in this console: `);
+      console.log(`${K} ${DAG} ${SUCCESS} ok. type email ${email}`);
+      await page.type("input[name=email]", email);
+    };
+
+    console.log(`${K} ${DAG} ${SUCCESS} all complete! submitting form...`);
+    await page.click("button[type=submit]");
 
   }
 };
