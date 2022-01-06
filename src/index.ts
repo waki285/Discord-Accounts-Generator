@@ -57,7 +57,8 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     console.log(`${K} ${DAG} ${INFO} scrapping email now.`);
     const g = new GmailnatorGet();
     await g.init();
-    const newEmail = g.getEmail();
+    const newEmail = await g.getEmail();
+    console.log(`${K} ${DAG} ${SUCCESS} email used ${newEmail}`);
   };
   async getRandomName(): Promise<string> {
     console.log(`${K} ${DAG} ${INFO} get random username.`);
