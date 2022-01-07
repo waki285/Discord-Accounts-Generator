@@ -3,7 +3,7 @@ import pluginStealth from "puppeteer-extra-plugin-stealth"
 import { Browser, Page } from "puppeteer"
 import { EventEmitter } from "events";
 import { readFile } from "fs/promises";
-import { red, magenta, green, yellowBright, bgWhite, cyan, bgMagenta, hex } from "chalk";
+import { red, magenta, green, yellowBright, bgWhite, cyan, bgMagenta, magentaBright } from "chalk";
 import { hcaptcha } from "puppeteer-hcaptcha"
 import axios from "axios";
 import { randomBytes } from "crypto";
@@ -41,8 +41,8 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
   private _email: string | null;
   constructor(options?: { getEmail?: GE, useSolver?: US}) {
     super();
-    if (options && options.useSolver) this._useSolver = options.useSolver; else this._useSolver = true;
-    if (options && options.getEmail) this._getEmail = options.getEmail; else this._getEmail = true;
+    if (options && options.useSolver !== void 0) this._useSolver = options.useSolver; else this._useSolver = true;
+    if (options && options.getEmail !== void 0) this._getEmail = options.getEmail; else this._getEmail = true;
     this._browser = null;
     console.log(`${K} ${DAG} ${SUCCESS} initialized.`);
     this._username = null;
@@ -150,7 +150,9 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     };
 
     if (!this._getEmail) {
-      const email = await question(`${K} ${DAG} ${hex("#FF19BA").bgCyan("QUESTION")} please type email in this console: `);
+      const email = await question(`${K} ${DAG} ${magentaBright("QUESTION")} please type email in this console: `);
+      const reg = /^[A-Za-z0-9]{1}[A-Za-z0-9_.+-]*@{1}[A-Za-z0-9_.-]{1,}.[A-Za-z0-9]{1,}$/;
+      if (!reg.test(email)) throw new Error("It's not an email!");
       console.log(`${K} ${DAG} ${SUCCESS} ok. type email ${email}`);
       await page.type("input[name=email]", email);
     };
@@ -162,9 +164,9 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
 };
 
 (async () => {
-  const generator = new Generator();
+  const generator = new Generator({ getEmail: false });
   await generator.launch();
-  await generator.scrapEmail();
+//  await generator.scrapEmail();
   await generator.getRandomName()
   await generator.gotoDiscord();
   await generator.typeInfo();
