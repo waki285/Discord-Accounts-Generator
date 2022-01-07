@@ -11,7 +11,20 @@ import { GmailnatorGet } from "./gmailnator/index";
 import { PuppeteerBlocker } from "@cliqz/adblocker-puppeteer";
 import fetch from "cross-fetch";
 import { createInterface } from "readline";
+import hCaptchaPlugin from "puppeteer-extra-plugin-recaptcha";
+
+import { config } from "dotenv";
+config();
+
 puppeteer.use(pluginStealth());
+puppeteer.use(hCaptchaPlugin({
+  provider: {
+    id: "2captcha",
+    token: process.env.TWOCAPTCHA_TOKEN
+  },
+  visualFeedback: true,
+  throwOnError: true
+}))
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout
@@ -35,7 +48,7 @@ function getRandom(min: number, max: number): number {
 
 type solveType = "2captcha" | "lib" | null;
 
-class Generator<GE extends boolean, US extends solveType> extends EventEmitter {
+class Generator<GE extends boolean, US extends solveType = solveType> extends EventEmitter {
   private _useSolver: solveType;
   private _getEmail: boolean;
   private _browser: Browser | null;
@@ -166,15 +179,23 @@ class Generator<GE extends boolean, US extends solveType> extends EventEmitter {
 
   };
   async solveCaptcha(page: Page) {
-    console.log(`${K} ${DAG} ${INFO} solve hCaptcha...`);
-    const cap = await page.$("iframe[src*=sitekey]");
-    if (!cap) await page.waitForSelector("iframe[src*=sitekey]");
-    await hcaptcha(page);
+    if (this._useSolver !== null) {
+      console.log(`${K} ${DAG} ${INFO} searching hCaptcha...`);
+      const cap = await page.$("iframe[src*=sitekey]");
+      if (!cap) await page.waitForSelector("iframe[src*=sitekey]");
+      console.log(`${K} ${DAG} ${INFO} found hcaptcha. waiting for solve...`);
+      if (this._useSolver === "2captcha") {
+        await page.solveRecaptchas()
+      } else {
+        await hcaptcha(page);
+      }
+      console.log(`${K} ${DAG} ${SUCCESS} hCaptcha solved.`);
+    }
   }
 };
 
 (async () => {
-  const generator = new Generator();
+  const generator = new Generator({ useSolver: "2captcha"});
   await generator.launch();
   await generator.scrapEmail();
   await generator.getRandomName()
