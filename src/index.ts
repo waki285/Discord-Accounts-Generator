@@ -33,15 +33,17 @@ function getRandom(min: number, max: number): number {
   return random;
 }
 
-class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
-  private _useSolver: boolean;
+type solveType = "2captcha" | "lib" | null;
+
+class Generator<GE extends boolean, US extends solveType> extends EventEmitter {
+  private _useSolver: solveType;
   private _getEmail: boolean;
   private _browser: Browser | null;
   private _username: string | null;
   private _email: string | null;
   constructor(options?: { getEmail?: GE, useSolver?: US}) {
     super();
-    if (options && options.useSolver !== void 0) this._useSolver = options.useSolver; else this._useSolver = true;
+    if (options && options.useSolver !== void 0) this._useSolver = options.useSolver; else this._useSolver = "lib";
     if (options && options.getEmail !== void 0) this._getEmail = options.getEmail; else this._getEmail = true;
     this._browser = null;
     console.log(`${K} ${DAG} ${SUCCESS} initialized.`);
