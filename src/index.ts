@@ -111,7 +111,7 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     await page.goto("https://discord.com/register");
     console.log(`${K} ${DAG} ${SUCCESS} success go to discord register page.`);
   };
-  async typeInfo() {
+  async typeInfo(): Promise<Page> {
     console.log(`${K} ${DAG} ${INFO} type username and password etc.`);
     if (!this._browser) throw new Error("You don't launch browser! please run generator.launch()");
     const pages: Page[] = await this._browser.pages();
@@ -160,14 +160,23 @@ class Generator<GE extends boolean, US extends boolean> extends EventEmitter {
     console.log(`${K} ${DAG} ${SUCCESS} all complete! submitting form...`);
     await page.click("button[type=submit]");
 
+    return page;
+
+  };
+  async solveCaptcha(page: Page) {
+    console.log(`${K} ${DAG} ${INFO} solve hCaptcha...`);
+    const cap = await page.$("iframe[src*=sitekey]");
+    if (!cap) await page.waitForSelector("iframe[src*=sitekey]");
+    await hcaptcha(page);
   }
 };
 
 (async () => {
-  const generator = new Generator({ getEmail: false });
+  const generator = new Generator();
   await generator.launch();
-//  await generator.scrapEmail();
+  await generator.scrapEmail();
   await generator.getRandomName()
   await generator.gotoDiscord();
-  await generator.typeInfo();
+  const page = await generator.typeInfo();
+  await generator.solveCaptcha(page);
 })();
