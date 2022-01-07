@@ -7,7 +7,6 @@ import { red, magenta, green, yellowBright, bgWhite, cyan, bgMagenta, magentaBri
 import { hcaptcha } from "puppeteer-hcaptcha"
 import axios from "axios";
 import { randomBytes } from "crypto";
-import { GmailnatorGet } from "./gmailnator/index";
 import { PuppeteerBlocker } from "@cliqz/adblocker-puppeteer";
 import fetch from "cross-fetch";
 import { createInterface } from "readline";
@@ -40,6 +39,7 @@ const INFO = cyan("info");
 const WARNING = yellowBright("WARNING");
 const ERROR = red("ERROR!");
 const SUCCESS = green("success");
+const QUESTION = magentaBright("QUESTION")
 
 function getRandom(min: number, max: number): number {
   const random = Math.floor(Math.random() * (max + 1 - min)) + min;
@@ -165,7 +165,7 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
     };
 
     if (!this._getEmail) {
-      const email = await question(`${K} ${DAG} ${magentaBright("QUESTION")} please type email in this console: `);
+      const email = await question(`${K} ${DAG} ${QUESTION} please type email in this console: `);
       const reg = /^[A-Za-z0-9]{1}[A-Za-z0-9_.+-]*@{1}[A-Za-z0-9_.-]{1,}.[A-Za-z0-9]{1,}$/;
       if (!reg.test(email)) throw new Error("It's not an email!");
       console.log(`${K} ${DAG} ${SUCCESS} ok. type email ${email}`);
@@ -192,7 +192,26 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
         await hcaptcha(page);
       }
       console.log(`${K} ${DAG} ${SUCCESS} hCaptcha solved.`);
+    } else {
+      let notSolve: boolean = true;
+      while(notSolve) {
+        const ans: string = await question(`${K} ${DAG} ${QUESTION} Have you solve captcha? please type your answer in this console [y/n]: `);
+        if (ans.toLowerCase() === "yes" || ans.toLowerCase() === "y") {
+          notSolve = false;
+          break;
+        } else if (ans.toLowerCase() === "no" || ans.toLowerCase() === "n") {
+          console.log(`${K} ${DAG} ${ERROR} ok, you should type console after solve captcha.`);
+          continue;
+        } else {
+          console.log(`${K} ${DAG} ${ERROR} wrong answer!`);
+        }
+      };
+      console.log(`${K} ${DAG} ${SUCCESS} hCaptcha solved.`);
     }
+  };
+  async verifyEmail() {
+    console.log(`${K} ${DAG} ${INFO} verify email.`);
+
   }
 };
 
@@ -204,4 +223,5 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
   await generator.gotoDiscord();
   const page = await generator.typeInfo();
   await generator.solveCaptcha(page);
+
 })();
