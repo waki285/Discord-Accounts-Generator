@@ -38,6 +38,7 @@ const DAG = bgWhite.black("DAG");
 const INFO = cyan("info");
 const WARNING = yellowBright("WARNING");
 const ERROR = red("ERROR!");
+const FATAL = bgWhite.red("ERROR!");
 const SUCCESS = green("success");
 const QUESTION = magentaBright("QUESTION")
 
@@ -47,6 +48,13 @@ function getRandom(min: number, max: number): number {
 }
 
 type solveType = "2captcha" | "lib" | null;
+
+class DAGError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = `${K} ${DAG} ${FATAL}`;
+  };
+}
 
 class Generator<GE extends boolean, US extends solveType = solveType> extends EventEmitter {
   private _useSolver: solveType;
@@ -81,14 +89,14 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
     }
   };
   async scrapEmail() {
-    if (this._getEmail === false) throw new Error("You choose don't scrap email!");
+    if (this._getEmail === false) throw new DAGError("You choose don't scrap email!");
     console.log(`${K} ${DAG} ${INFO} scrapping email now.`);
     /*const g = new GmailnatorGet();
     const t = await g.init();
     console.log(`${K} ${DAG} ${SUCCESS} token used ${t}`);
     const newEmail = await g.getEmail();
     console.log(`${K} ${DAG} ${SUCCESS} email used ${newEmail}`);*/
-    if (!this._browser) throw new Error("You don't launch browser! please run generator.launch()");
+    if (!this._browser) throw new DAGError("You don't launch browser! please run generator.launch()");
     const mailPage = await this._browser.newPage();
     PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => blocker.enableBlockingInPage(mailPage));
     mailPage.goto("https://www.gmailnator.com", { timeout: 10000});
@@ -119,7 +127,7 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
   };
   async gotoDiscord(): Promise<void> {
     console.log(`${K} ${DAG} ${INFO} go to https://discord.com/register .`);
-    if (!this._browser) throw new Error("You don't launch browser! please run generator.launch() .");
+    if (!this._browser) throw new DAGError("You don't launch browser! please run generator.launch()");
     const pages: Page[] = await this._browser.pages();
     const page:Page = pages[0] || await this._browser.newPage();
     if (pages.length > 1) await page.bringToFront();
@@ -128,14 +136,14 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
   };
   async typeInfo(): Promise<Page> {
     console.log(`${K} ${DAG} ${INFO} type username and password etc.`);
-    if (!this._browser) throw new Error("You don't launch browser! please run generator.launch()");
+    if (!this._browser) throw new DAGError("You don't launch browser! please run generator.launch()");
     const pages: Page[] = await this._browser.pages();
     const page:Page | undefined = pages[0];
-    if (!page) throw new Error("You don't open discord! please run generator.gotoDiscord()");
-    if (!this._username) throw new Error("You don't have username! please run generator.getRandomName()");
+    if (!page) throw new DAGError("You don't open discord! please run generator.gotoDiscord()");
+    if (!this._username) throw new DAGError("You don't have username! please run generator.getRandomName()");
     await page.waitForSelector("input[name=email]");
     if (this._getEmail) {
-      if (!this._email) throw new Error("You don't have an email! please run generator.scrapEmail()");
+      if (!this._email) throw new DAGError("You don't have an email! please run generator.scrapEmail()");
       console.log(`${K} ${DAG} ${INFO} type email ${this._email}`);
       await page.type("input[name=email]", this._email);
     }
@@ -167,7 +175,7 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
     if (!this._getEmail) {
       const email = await question(`${K} ${DAG} ${QUESTION} please type email in this console: `);
       const reg = /^[A-Za-z0-9]{1}[A-Za-z0-9_.+-]*@{1}[A-Za-z0-9_.-]{1,}.[A-Za-z0-9]{1,}$/;
-      if (!reg.test(email)) throw new Error("It's not an email!");
+      if (!reg.test(email)) throw new DAGError("It's not an email!");
       console.log(`${K} ${DAG} ${SUCCESS} ok. type email ${email}`);
       await page.type("input[name=email]", email);
     };
@@ -211,7 +219,14 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
   };
   async verifyEmail() {
     console.log(`${K} ${DAG} ${INFO} verify email.`);
-
+    if (!this._browser) throw new DAGError("You don't launch browser! please run generator.launch()");
+    if (!this._getEmail) throw new DAGError("You choose don't scrap an email!");
+    const pages: Page[] = await this._browser.pages();
+    const emailPage: Page | undefined = pages.find(x => x.url().match(/gmailnator/));
+    if (!emailPage) throw new DAGError("You don't scrap an email or close tab! please run generator.scrapEmail() or don't close tab!");
+    await emailPage.bringToFront();
+    await emailPage.click("button[id=button_go]");
+    //document.querySelector("a[href*=messageid]").click()
   }
 };
 
