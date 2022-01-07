@@ -91,7 +91,7 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
     if (!this._browser) throw new Error("You don't launch browser! please run generator.launch()");
     const mailPage = await this._browser.newPage();
     PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => blocker.enableBlockingInPage(mailPage));
-    mailPage.goto("https://www.gmailnator.com");
+    mailPage.goto("https://www.gmailnator.com", { timeout: 10000});
     const timeout = setTimeout(() => mailPage.reload(), 2000);
     await mailPage.waitForResponse(res => !!res.url().match(/index\/indexquery/));
     clearTimeout(timeout);
@@ -183,6 +183,8 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
       console.log(`${K} ${DAG} ${INFO} searching hCaptcha...`);
       const cap = await page.$("iframe[src*=sitekey]");
       if (!cap) await page.waitForSelector("iframe[src*=sitekey]");
+      await page.waitForTimeout(3000);
+//      await page.waitForResponse((res) => !!res.url().match(/hsw.js/))
       console.log(`${K} ${DAG} ${INFO} found hcaptcha. waiting for solve...`);
       if (this._useSolver === "2captcha") {
         await page.solveRecaptchas()
