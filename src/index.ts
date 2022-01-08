@@ -1,6 +1,6 @@
 import puppeteer from "puppeteer-extra";
 import pluginStealth from "puppeteer-extra-plugin-stealth"
-import { Browser, Page } from "puppeteer"
+import { Browser, ElementHandle, Page } from "puppeteer"
 import { EventEmitter } from "events";
 import { readFile } from "fs/promises";
 import { red, magenta, green, yellowBright, bgWhite, cyan, bgMagenta, magentaBright } from "chalk";
@@ -32,6 +32,8 @@ const rl = createInterface({
 const question = async (query: string): Promise<string> => new Promise((r) => {
   rl.question(query, (answer) => r(answer));
 });
+
+const sleep = async (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 const K = `${magenta("[")}*${magenta("]")}`;
 const DAG = bgWhite.black("DAG");
@@ -225,10 +227,32 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
     const emailPage: Page | undefined = pages.find(x => x.url().match(/gmailnator/));
     if (!emailPage) throw new DAGError("You don't scrap an email or close tab! please run generator.scrapEmail() or don't close tab!");
     await emailPage.bringToFront();
-    await emailPage.click("button[id=button_go]");
-    //document.querySelector("a[href*=messageid]").click()
-  }
+    emailPage.click("button[id=button_go]");
+    const timer = setTimeout(() => emailPage.click("button[id=button_reload]"), 3000);
+    await emailPage.waitForResponse((res) => !!res.url().match(/mailbox\/mailboxquery/));
+    clearTimeout(timer);
+    let link = await emailPage.$("a[href*=messageid]");
+    let mitukaranai: boolean = true;
+    let kaisuu: number = 0;
+    while (mitukaranai) {
+      if (link) {
+        mitukaranai = false;
+        break;
+      } else {
+        if (kaisuu > 5) throw new DAGError("failed to email fetch");
+        kaisuu++
+        console.log(`${K} ${DAG} ${WARNING} failed to email fetch. I try fetch again after 15 seconds. ${5 - kaisuu} remaining`);
+        await sleep(1500);
+        link = await emailPage.$("a[href*=messageid]");
+      }
+    }
+    await (link as ElementHandle<Element>).click();
+    await ((await emailPage.$("a[href*=discord.com]")) as ElementHandle<Element>).click();
+    console.log(`${K} ${DAG} ${SUCCESS} verified.`);
+  };
 };
+
+export { Generator };
 
 (async () => {
   const generator = new Generator({ useSolver: "2captcha"});
