@@ -11,6 +11,7 @@ import { PuppeteerBlocker } from "@cliqz/adblocker-puppeteer";
 import fetch from "cross-fetch";
 import { createInterface } from "readline";
 import hCaptchaPlugin from "puppeteer-extra-plugin-recaptcha";
+import { Solver } from "2captcha";
 
 import { config } from "dotenv";
 config();
@@ -74,7 +75,7 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
     this._email = null;
   };
   async launch(args?: string[]): Promise<void> {
-    const defaultArgs = ["--no-sandbox", "--disable-setuid-sandbox"];
+    const defaultArgs = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--window-size=1920x1080"];
     const proxies = await readFile("./config/proxies.txt", "utf-8");
     if (!proxies) {
       console.log(`${K} ${DAG} ${WARNING} You don't use any proxy.`)
@@ -101,6 +102,7 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
     if (!this._browser) throw new DAGError("You don't launch browser! please run generator.launch()");
     const mailPage = await this._browser.newPage();
     PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => blocker.enableBlockingInPage(mailPage));
+    await mailPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3419.0 Safari/537.36');
     mailPage.goto("https://www.gmailnator.com", { timeout: 10000});
     const timeout = setTimeout(() => mailPage.reload(), 2000);
     await mailPage.waitForResponse(res => !!res.url().match(/index\/indexquery/));
@@ -197,7 +199,11 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
 //      await page.waitForResponse((res) => !!res.url().match(/hsw.js/))
       console.log(`${K} ${DAG} ${INFO} found hcaptcha. waiting for solve...`);
       if (this._useSolver === "2captcha") {
-        await page.solveRecaptchas()
+        //await page.solveRecaptchas()
+        //await sleep(60000);
+        const tc = new Solver(process.env.TWOCAPTCHA_TOKEN as string);
+        const result = tc.hcaptcha("f5561ba9-8f1e-40ca-9b5b-a0b3f719ef34", "https://discord.com/register");
+        console.log(result);
       } else {
         await hcaptcha(page);
       }
@@ -255,9 +261,9 @@ class Generator<GE extends boolean, US extends solveType = solveType> extends Ev
 export { Generator };
 
 (async () => {
-  const generator = new Generator({ useSolver: "2captcha"});
+  const generator = new Generator({ useSolver: "2captcha", getEmail: false });
   await generator.launch();
-  await generator.scrapEmail();
+//  await generator.scrapEmail();
   await generator.getRandomName()
   await generator.gotoDiscord();
   const page = await generator.typeInfo();
